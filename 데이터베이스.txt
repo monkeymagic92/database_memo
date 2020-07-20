@@ -1,0 +1,421 @@
+== 데이터베이스 == 
+내컴퓨터 데이터베이스 전역 이름 : orcl
+		비밀번호 : orcl
+
+무결성 (정규화) 1, 2, 3, BCNF 정규화
+역정규화
+
+퍼포먼스(성능) vs 무결성(정규화)
+
+무결성 -> 은행권 퍼포먼스보단 오차 오류가 없어야됨
+
+퍼포먼스 -> 페북, ex) 좋아요 눌렀다가 취소되도 피해안오듯이 속도 위주
+
+
+
+
+RDB - 관계형 베이스
+ㄴ 무결성에 맞춰져있음
+
+
+
+-DML-
+
+CRUD 
+C - 입력
+R - 읽기
+U - 업데이트
+D - 삭제 
+
+
+NoSQL - 읽기속도에 맞춤형 - 
+ㄴ R 읽기에 맞춰져있다
+ㄴ 대표 SQL - MongoDB
+
+DCL - 관리자가 사용자에게 권한줄때
+DDL - 테이블만들고 수정 삭제
+
+
+
+pk(primary key) - 식별할수있는 키  ( 이름, 나이, 연락처, 이런것) (정수값을 주자) 1,2,3
+pk가 가장 중요한 역활 - 레코드구별 (중복된값 허용 X)
+
+가로줄(한줄,행) -레코드 ,튜플 ?
+세로줄(열) - 컬럼
+
+
+
+===========================================================
+
+명령어 :
+unique = 중복방지   ex) 주민번호 -> 문자열로해야됨 왜냐? 2000년생이후부터 00이 붙으니까 0이앞에 붙으면 날라감
+
+not null = 값을 무조건 넣어야된다 
+
+primary key = unique 와 not null 기능이 자동으로 들어감 
+즉, 중복방지, 값무조건 넣기
+
+
+
+================================================================
+계정 비밀번호 셋팅 방법
+
+cmd -> sqlplus -> 아이디 : system 비번 : orcl
+
+비밀번호 변경:
+alter user 계정명 identified by 비밀번호; 
+비밀번호 변경확인(접속하기):
+conn 계정명/비밀번호 as sysdba;
+
+
+
+================================================================
+☆☆☆ 1. 테이블 생성 ☆☆☆ 
+
+CREATE TABLE t_student(
+    i_student number not null,
+    nm varchar(15) not null,
+    age number(3),
+    prymary key(i_student)
+);
+
+테이블명 : t_student
+변수 : 3개
+i_student = 숫자(소수,정수)
+nm varchar(15) = 15byte 문자열 (영어 1byte, 한글 3byte 차지함)
+age number(3) = 숫자3개만
+not null = 무조건 값 넣겠다란 뜻
+prymary key(i_student) = not null + unique 를 가진 i_student로 하겠다
+unique = 중복X
+
+
+☆☆☆ 2. 각 테이블 값 넣기 ☆☆☆
+
+INSERT INTO t_student
+(i_student, nm, age)
+VALUES
+(1,'이재용',29);
+
+- 자바생성자랑 넣는법 비슷 (변수1,변수2,변수3, 값1,값2,값3)
+
+
+☆☆☆ 3. 테이블 값 변경 ☆☆☆ 
+
+UPDATE t_student -- 수정
+SET nm = '김도빈', --nm과 age를 지금 입력한값으로 설정(SET)하겠다
+age = 21 -- age = age + 1도 가능
+WHERE i_student = 2;
+
+
+☆☆☆ 4. 값 삭제 ☆☆☆ 
+
+ELETE FROM t_student -- t_sudent에서 값을 빼겠다(삭제)
+WHERE i_student = 3; -- 위치는 i_student가 3인곳
+
+
+☆☆☆ 5. 테이블 삭제 ☆☆☆
+
+DROP TABLE t_student
+
+
+☆☆☆ 6. 테이블 안에 전체값 읽기 ☆☆☆
+SELECT * FROM t_student
+or
+SELECT i_student, nm FROM t_student
+- i_student, nm 값만 읽겠다란 뜻
+
+
+☆☆☆ 7. 오름차순 내림차순 ☆☆☆
+
+ASC = 오름차순( 생략하면 기본값으로 들어감)
+DESC = 내림차순 (적어줘야됨)
+
+SELECT * FROM t_student
+WHERE (i_student >=1 AND i_student <= 3)
+ORDER BY age ASC;
+
+- t_student 테이블을 보여주되, i_student 가 1보다 크거나 같고
+			  i_student 가 3보다 작거나 같은값을 age 오름차순으로 보여달라
+
+
+
+
+1.
+테이블생성시
+~~내용
+primary key(a,b,c);
+
+이렇게해야 여러개 구분해서 프라이머리 키 줄수있음
+위에 내용대로 하면 한 컬럼에 a,b,c가 중복되면안됨 (즉 한줄에 전체 다 입력되고 그내용은 다시중복되면 안됨)
+
+a primary key
+b primary key    < 이런식으로 안됨 !!
+
+
+2.
+rollback;    이전에했던 작업 다돌리는것 커밋전까지 아주 좋은거같다 이거
+
+- DELETE t_student
+WHERE i_student = 3;  이런식으로 했을때 
+삭제한 데이터를 다시 돌린다
+(단, 테이블을 날리면 롤백안됨)
+
+
+
+3.
+transition
+트렌지션
+전체 내용이 에러가 안터졌을때만 커밋
+에러가 터질경우 전체 롤백 함
+
+
+4.
+DELETE, UPDATE 문은 정말 신중하게쓰자
+잘못썻다 좆됨
+
+
+5. INSERT INTO t_student
+할때 컬럼을 생략하지말고 항상 일일이 지정해주자
+(i_student,nm,age) <-- 이렇게주자 생략하고도 넣을순있지만 추후 버그에 대비 100% 를 만들자
+
+
+6.
+UPDATE t_student
+WHERE i_student = 19;   (만약 19자리가 없다면)
+실행시 0개행이 없다고 뜸  ( 에러는 안뜨지만 즉, 수정이 안됬단 뜻)
+
+
+7.
+데이터베이스는 순서는 안중요함
+그 테이블 안에 값이 있는지 그게 중요
+
+
+8.
+substr()
+substr(컬럼명, 몇번째, 몇번째까지 함수
+SELECT nm, substr(nm,2,1)
+from t_student;
+
+몇번째 글자를 몇번째'까지' 나타낼때 사용
+
+
+
+9.
+instr();
+컬럼명, n('문자열 or 정수) 값이 몇번째에 있는지 알려주는 함수
+SELECT nm, instr(nm,'하')    
+FROM t_student;
+
+
+8 ~ 9번 이해 안되면 집에서 테스트해보기
+LPAD , RPAD 도 자주사용함 집가서 검색해보기
+
+
+
+10. 
+SELECT trim('  a    ') FROM DUAL;
+좌우 공백 제거
+은근많이쓰임 ( HTML에서 값 넘어올때 공백으로 넘어 오는 경우를 막기위해 )
+
+
+11. 
+DUAL
+직접 사용해보면됨 테이블 값이아닌 그냥 일정 한개의 값만 내가 볼때 사용하는것
+SELECT 1+1 FROM DUAL; 
+
+
+12.
+concat('a','b')  문자열 두개를 합치는 기능
+SELECT concat('a','b') FROM DUAL;
+
+SELECT concat(concat('a','b'),'c') FROM DUAL;
+복수기능 계속 concat 만들고 괄호치고 생성해야됨
+
+
+
+
+=================================== 7.17 배운내용 =================================
+
+
+
+13.
+SELECT MAX(salary) FROM EMPLOYEES;
+
+- salary 열에서 제일 높은 값을 나타내는 함수
+
+SELECT MIN(salary) FROM EMPLOYEES;
+
+- salary 열에서 제일 낮은 값을 나타내는 함수
+
+
+
+14.
+
+SELECT max(salary), min(salary),floor(avg(salary)), count(*)
+FROM EMPLOYEES;
+
+round - 반올림
+SELECT age, round((age / 3),1) from t_student;
+
+floor - 전체소수점내림 = 0.9 - 0;
+
+ceil - 전체소수 다올림 즉 값올림 0.9 -> 1.0;
+
+sum - 전체값 다 더하는거
+
+count - 레코드수  
+
+소수점 2째자리 까지 나타내고싶다면 round(avg(salary),2)), ~~ 이렇게 콤마 (숫자) 적어주면 됨
+
+테스트 dual 용 (dual = 스칼라)
+SELECT round((12.12),1) from dual;
+
+
+15.
+
+GROUP BY (컬럼명)
+
+WHERE 절은 항상 GROUP 절 위에 있어야됨
+내용 : WHERE 로 조건을 만들고난후
+ 그이후 GROUP 하여 세분화 하겠다
+
+
+
+그룹 = 그룹별로 볼수있음  ( ORDER BY랑 같은사용법)
+사용이유 : 전체 라고쳤을때  남자, 여자 나누고
+남자 나이제일많은사람, 여자나이 제일많은사람 이렇게 나눠서 볼때
+
+GROUP BY job_id, manager_id
+
+SELECT job_id,manager_id, max(salary), min(salary), trunc(avg(salary),3)
+,count(*)
+FROM EMPLOYEES
+GROUP BY job_id, manager_id
+
+GROUP BY 에 있는 명령어는 having 있음 즉 WHERE 절이랑 비슷하게 사용함
+having count(*) >= 5
+
+
+16.
+DECODE (컬럼명, '하고자 하는이름')
+
+이게 뭐라면~~ 이 컬럼명으로 바꾸겟다
+ex) 기존 테이블 컬럼명 : IT_PROG = 프로그래머 로
+이렇게 보이게하는것 
+
+== 일단 두개적어놓겠음 보고 테스트 하기 ==
+SELECT JOB_ID, DECODE(JOB_ID,'IT_PROG', '프로그래머'
+                            ,'FI_ACCOUNT', '금융업')
+FROM EMPLOYEES;
+
+
+NVL = null값 없애기 ( 인터넷 찾아보기 )
+
+SELECT JOB_ID,NVL(null,'ㅎ'),
+DECODE(JOB_ID, 'IT_PROG','프로그래머'
+              ,'FI_ACCOUNT','금융업')
+FROM EMPLOYEES;
+
+
+제일마지막에 ,'' 해주면 null 값을 원하는 문구 넣으면됨
+
+SELECT JOB_ID,
+DECODE(JOB_ID, 'IT_PROG','프로그래머'
+              ,'FI_ACCOUNT','금융업'
+              ,'')
+FROM EMPLOYEES;
+
+
+17. -TIP-
+
+띄워쓰기는 코드작성시 _ 작성해줘야 인식함
+
+
+18. ★★★
+CASE 문
+
+이거할때 as ~어쩌고 값 지웠다 뻇다하며 as별칭을 이해할것임
+
+CASE문은 항상 마지막에 닫아줄때 END가 있어야됨
+
+만원 넘는 레코드는 * 2가 됨
+만원 안넘는 레코드는 원래값 나옴
+
+SELECT
+salary, CASE WHEN SALARY >= 10000 THEN SALARY * 2 ELSE SALARY END as calc
+FROM EMPLOYEES;
+
+- salary가 10000 넘으면 *2하겠다 -
+
+
+SELECT
+salary,
+CASE WHEN SALARY >= 20000 THEN SALARY * 3 
+    WHEN SALARY >= 10000 THEN SALARY * 2
+ELSE SALARY END  as calcSalary
+FROM EMPLOYEES;
+
+- 복수 추가가능, when 으로 구별  -
+
+CASE (커럼명) ~~~~~~~ 
+CASE WHEN 
+
+
+19.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

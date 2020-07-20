@@ -1,0 +1,233 @@
+﻿	
+
+			====== 오라클 SQL 데이터 베이스 2편 =====
+https://www.w3schools.com/sql/exercise.asp
+들어가보기
+
+
+
+= 1. CASE문 =
+
+CASE JOB_ID WHEN 'IT_PROG' THEN '프로그래머
+	     WHEN 'FI_ACCOUNT THEN '금융업 
+	     ELSE '어쩌고' END    -- IT_PROG , FI_ACCOUNT 가 아니라면 어쩌고 라고 다바꿈
+FROM employees;
+
+
+
+SELECT salary,
+CASE WHEN salary >= 20000 THEN salary * 2
+     WHEN salary >= 10000 THEN salary * 1
+     ELSE salary * 0 END as 확인용
+FROM employees;
+
+사용목적 : 한전, 누진세 관련해서 적용시킬경우 사용할수 있음
+
+--------------------------------------------------------------------------------------------------------------
+
+= 2. NVL =  ★ 많이사용함 ★
+
+SELECT NVL(JOB_ID,' ') as 컬럼명 FROM DUAL;   
+
+-- NVL(컬럼명,'!!")  컬럼명이 NULL값이면 !!로 나타내겠다
+-- 웬만하면 as(아리앙스) 로 별칭을 붙여줌
+
+ex)
+SELECT employee_id, nvl(commission_pct,0) from employees;
+
+사용이유 : 자바에서 데이버테이스 자료를 가져올때 int값에 null 이들어오면 에러뜨니
+int 자료형 받을때 null값을 0으로 바꿔주기 좋음
+
+--------------------------------------------------------------------------------------------------------------
+
+= 3. 그룹핑(GROUP BY) =
+
+SELECT JOB_ID, MAX(salary),min(salary),avg(salary),count(*),
+sum(salary), sum(salary) / count(salary)
+FROM employees
+GROUP BY JOB_ID
+
+JOB_ID에 모든 값들을 다 하나로 묶는것, 저위에뜻은 JOB_ID에서 맥스 셀러리 민 셀러리 등을 추출해내는것 
+집가서해보기
+
+즉, 직업별로 그중에 값 찾는거 (무슨말이냐 JOB_ID MAX~~어쩌고 저문구는 JOB_ID 컬럼에서 salary의
+맥스값과 민값등을 찾는것
+
+그룹바이를 안하면 전체에서 그값을 찾는데 그룹바이하면 내가원하는 값에서 저 값을 찾는것
+
+
+SELECT JOB_ID, count(*) FROM employees
+GROUP BY job_id;
+
+이런식으로 사용하면 JOB_ID 가 컬럼별로 총 몇개인지 확인하는용
+
+
+= 3-1 having =
+
+SELECT lpad(phone_number,3), MAX(salary), MIN(salary)
+from employees
+GROUP BY lpad(phone_number,3)
+having max(salary) >= 10000;
+
+GROUP BY 밑에 having 절사용함
+having 절은 WHERE 절처럼 사용함 
+
+
+SELECT JOB_ID,salary FROM employees
+WHERE salary >= 10000;
+
+위에 GROUP BY 와 밑에 WHERE 절 이런느낌이라고 보면됨
+
+---------------------------------------------------------------------------------------------------------------
+
+= 4. COUNT =
+
+SELECT JOB_ID, count(*) FROM employees
+GROUP BY job_id;
+
+JOB_ID 별로 총 몇명이 있나 확인하는 것
+
+---------------------------------------------------------------------------------------------------------------
+
+= 5. distinct = 
+중복제거
+
+SELECT distinct lpad(phone_number,3) FROM employees;
+
+---------------------------------------------------------------------------------------------------------------
+
+= 6. LPAD , RPAD=
+
+SELECT job_id,lpad(phone_number,3) FROM employees;
+
+왼쪽에서부터 지정한 값을 가지고있는 컬럼을 보여줌
+lpad(컬럼명,index 값) 
+
+
+-- 다른 사용법 --
+
+SELECT lpad(salary,8,0) from employees;
+
+SELECT lpad(month,2,0) from DUAl;
+(날짜 찍을때 lpad 유용함  즉, 5월,12월로 예를들자면 두자리숫자 나타낼때 05, 12 이런식으로 칸매꿀때)
+(왼쪽부터 2자리숫자는 그냥 냅두고 1자리숫자는 왼쪽에 0 을 넣음)
+
+SELECT Rpad(salary,8,'!') from employees;
+RPAD는 오른쪽에 !을 채움 
+
+----------------------------------------------------------------------------------------------------------------
+
+= 7. sysdate =
+
+현재시간 날짜나타내는 것
+SELECT to_char(sysdate, 'yyyy-mm-dd hh:mi:ss') FROM dual;
+
+------------------------------------------------------------------------------------------------------------------
+= 8. JOIN =
+
+= 컬럼(정규화) =
+
+원소들끼리 1:1관계가 될경우 , 안될경우 구분짓기
+될경우 : 주민번호 같은경우
+안될경우 : 취미
+
+
+정규화 : 잘못된값 들어가면안되고, 중복값X, 
+
+1:다 = 테이블2개
+다:다 = 테이블3개  (휴대폰사진 다대다 관계)
+
+
+조인의 장점 : 값 수정이 유리(레퍼런스 값이기에, 우리 자바 변수명 하나바꾸면 다 바뀌는 논리)
+조인의 단점 : 리소스를 많이잡아먹고 속도가 느려짐
+
+
+한컬럼 안에는 두개의 값이 들어갈수 없다. 
+취미 : 수영,독서,음악감상 
+이렇게 하는순간 , 로 구별하면 나중에 통계내기가 힘들다 
+ex) 수영을 취미로 가지는사람 통게낼때
+
+
+일단 테이블을 서로 나눠야됨 
+
+1. 사람정보 테이블
+
+2. 1. (취미) 2.(취미) 3.(취미).... 테이블
+
+3. 사람 + 취미 테이블
+
+3번 테이블은 1번과 2번 테이블과 조인을 해서 보기좋게 하는 것
+
+
+포링키(foreign key) 
+foreign key(컬럼명) references t_student(컬럼명)
+
+: PK값이 1,2,3 번까지 있으면 포링키 걸면 1,2,3 까지 만 들어갈수있단것
+즉, 아무값이나 못때려박고 무결성 조건을 성립시키는 것
+(실수예방차원)
+
+내가 만약 4번이 없는데 4번을 때려박으면 오류 (실수예방)
+또한, 포링키가 적용된 컬럼이 사용됬을경우 delete 불가능
+즉, 포링키걸린 값이 아무도 참조안하면 delete 가능
+
+
+
+-- 테스트 예제 --
+
+
+
+-- 취미테이블 --
+
+CREATE TABLE t_hobby(
+    i_hobby NUMBER PRIMARY KEY,
+    nm VARCHAR2(30) NOT NULL    
+);
+
+
+INSERT INTO t_hobby (i_hobby,nm) VALUES (1,'독서');
+INSERT INTO t_hobby (i_hobby,nm) VALUES (2,'음악감상');
+INSERT INTO t_hobby (i_hobby,nm) VALUES (3,'영화감상');
+INSERT INTO t_hobby (i_hobby,nm) VALUES (4,'게임');
+INSERT INTO t_hobby (i_hobby,nm) VALUES (5,'산책');
+INSERT INTO t_hobby (i_hobby,nm) VALUES (6,'프로그래밍');
+
+
+
+-- t_student_hobby (학생 취미 테이블 만드는 것) --
+
+
+CREATE TABLE t_student_hobby(
+    i_student NUMBER,
+    i_hobby NUMBER,
+    r_dt date default sysdate, -- r_dt에 값을 안넣으면 null이 들어가는게 아니라 시간이 들어감 
+    PRIMARY KEY(i_student, i_hobby),
+    foreign key(i_student) references t_student(i_student),
+    -- 내 테이블 i_student 컬럼을 t_student(i_student)에 넣겠다
+    
+    foreign key(i_hobby) references t_hobby(i_hobby)
+    -- on delete case 참조되어있는 값을 삭제하면 다 지워지게끔
+    -- 내 테이블 i_hobby 컬럼을 t_hobby(i_hobby)에 넣겠다
+    -- 자바로치면 this. 이랑 비슷함
+);
+
+
+INSERT INTO t_student_hobby (i_student,i_hobby)VALUES(1,2);
+INSERT INTO t_student_hobby (i_student,i_hobby)VALUES(1,4);
+INSERT INTO t_student_hobby (i_student,i_hobby)VALUES(2,1);
+INSERT INTO t_student_hobby (i_student,i_hobby)VALUES(3,5);
+INSERT INTO t_student_hobby (i_student,i_hobby)VALUES(3,3);
+INSERT INTO t_student_hobby (i_student,i_hobby)VALUES(3,1);
+
+SELECT * FROM t_student_hobby;
+
+
+
+
+
+
+
+
+
+
+
+

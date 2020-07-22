@@ -1,0 +1,259 @@
+﻿
+				== 데이터베이스 3 ==
+7.22
+
+primary key(not null, unique(index));
+
+- 프라이머리키 에 unique를 하면 자동으로 index가 들어감
+
+
+레코드 : 가로로 한줄
+컬럼 : 세로로 그 레코드의 한개 값
+
+
+내 계정에 있는 테이블 보는법 : SELECT * FROM USER_TABLES;
+내 계정에 있는 인덱스테이블 보는법 : SELECT * FROM USER_INDEXES;
+내 계정에 있는 뷰 보는법 : SELECT * FROM USER_VIEWS;
+
+
+
+
+
+
+
+
+== 1. 인덱스 ==
+
+테이블에 nm age 컬럼이있다 치면 age 오름차순으로 가상의 테이블이 하나 더있다고 생각해보자 !
+(추후 추가값이 있다면 나이에맞게 가상테이블에 오름차순으로 자동정렬 됨)
+
+ex) SELECT * FROM t_student WHERE age > 40;
+
+- 인덱스가 안걸려있을경우 : 컬럼이 10,000개 있다하면 10,000개 다검사함
+
+- 인덱스 걸려있을경우 : 중간 중간 파악해서 그주변만 찾음
+
+
+- 인덱스 생성에 좋은 컬럼 -
+1.  where 절이나 join 조건이 자주 사용되는 컬럼
+2.  null 값이 많이 포함되어 있는 컬럼
+3.  where 절이나 join 자주사용되는 두개이상의 컬럼들
+
+
+- 인덱스 생성이 불필요한 테이블 -
+1.  테이블이 작을때
+2.  테이블이 자꾸 갱신될때
+
+
+
+ㅡㅡㅡㅡ 인덱스 테이블 생성방법 ㅡㅡㅡㅡ
+
+CREATE INDEX idx_customer_nm
+On t_student(age);
+
+1. 테이블명 앞에 idx_  붙이자
+2. On t_student(age);    -->   t_student(age)  -->  t_student 테이블 안 age에 인덱스 걸겠다
+
+
+
+인덱스 테이블 확인방법 : SELECT * FROM 인덱스 테이블명;
+
+인덱스 테이블 삭제방법 : drop index 인덱스 테이블명;
+
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+
+
+== 2. View(뷰) ==
+
+(가상테이블을 실제 테이블처럼 만들수 있다)
+여기서 LEFT JOIN( ) 안에 있는 select 부분을 가상 테이블로 만든다는 뜻 
+뷰 확인법 : 워크시트 옆 접속 부분에 테이블 탭 밑에 뷰 있음 
+
+
+
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ1. ↓ 원래 기존에 있던 코드를 ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+
+SELECT A.*,B.i_board, nvl(B.like_cnt,0)FROM t_board A
+LEFT JOIN (
+    select i_board, count(i_board) as like_cnt
+    from t_board_like
+    group by i_board
+)B
+ON A.i_board = B.i_board
+WHERE B.i_board is null;
+
+
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ2. ↓ 뷰를 생성하게되면 ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+
+
+CREATE VIEW view_boardlike_cnt
+as
+select i_board, count(i_board) as like_cnt
+    from t_board_like
+    group by i_board;
+
+
+ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ3. ↓LEFT JOIN(   ) 안에 뷰 명을 넣으면됨 ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+
+SELECT A.*,B.i_board, nvl(B.like_cnt,0)FROM t_board A
+LEFT JOIN (
+    view_boardlike_cnt
+)B
+ON A.i_board = B.i_board
+WHERE B.i_board is null;
+
+
+
+
+뷰 확인법 : SELECT * FROM 뷰명;
+
+뷰 삭제하는 법 : drop view 뷰테이블명;
+
+
+
+
+------------------------------- INNER JOIN 예제 3 -----------------------------------------
+
+CREATE TABLE t_product(
+    i_num number(3),
+    i_name varchar2(20),
+    primary key(i_num)
+);
+
+INSERT INTO t_product(i_num,i_name) VALUES(1,'Tv');
+INSERT INTO t_product(i_num,i_name) VALUES(2,'Computer');
+INSERT INTO t_product(i_num,i_name) VALUES(3,'Audio');
+INSERT INTO t_product(i_num,i_name) VALUES(4,'Car');
+
+-- Product 테이블 생성
+
+
+
+
+-------------------------------------------------------------
+
+CREATE TABLE t_item(
+    i_num number(3),
+    i_name varchar2(20),
+    primary key(i_num)
+);
+
+INSERT INTO t_item(i_num,i_name) VALUES(1,'리모콘');
+INSERT INTO t_item(i_num,i_name) VALUES(2,'모니터');
+INSERT INTO t_item(i_num,i_name) VALUES(3,'마우스');
+INSERT INTO t_item(i_num,i_name) VALUES(4,'오디오');
+INSERT INTO t_item(i_num,i_name) VALUES(5,'대박상품');
+
+-- t_item 테이블 생성
+
+
+--------------------------------------------------------------
+
+
+CREATE TABLE t_product_item(
+    i_num number(2),
+    i_num2 number (20),
+    primary key(i_num,i_num2),
+    foreign key(i_num) references t_product(i_num),
+    foreign key(i_num2) references t_item(i_num)
+);
+
+INSERT INTO t_product_item (i_num,i_num2) VALUES (1,1);
+INSERT INTO t_product_item (i_num,i_num2) VALUES (1,5);
+INSERT INTO t_product_item (i_num,i_num2) VALUES (2,2);
+INSERT INTO t_product_item (i_num,i_num2) VALUES (3,4);
+INSERT INTO t_product_item (i_num,i_num2) VALUES (3,5);
+INSERT INTO t_product_item (i_num,i_num2) VALUES (4,5);
+INSERT INTO t_product_item (i_num,i_num2) VALUES (4,1);
+
+-- t_product_item 테이블 생성
+-- 나의 i_num 값을 t_product 테이블  i_num 컬럼 과 레퍼런스 하겠다 (참조)
+-- 나의 i_num2 값을 t_item 테이블 i_num 컬럼 과 레퍼런스 하겠다 (참조)
+-- 
+
+
+
+
+SELECT A.i_num,A.i_name, B.i_name FROM t_product_item C
+INNER JOIN t_product A
+On A.i_num = C.i_num
+INNER JOIN t_item B
+On B.i_num = C.i_num2
+ORDER BY A.i_num;
+
+
+
+
+
+
+--------------------------------------------마지막 좋은 예제--------------------------------------------
+
+CREATE TABLE t_product(
+    i_num number(3),
+    i_name varchar2(20),
+    primary key(i_num)
+);
+
+INSERT INTO t_product(i_num,i_name) VALUES(1,'Tv');
+INSERT INTO t_product(i_num,i_name) VALUES(2,'Computer');
+INSERT INTO t_product(i_num,i_name) VALUES(3,'Audio');
+INSERT INTO t_product(i_num,i_name) VALUES(4,'Car');
+
+-- Product 테이블 생성
+
+
+
+
+-------------------------------------------------------------
+
+CREATE TABLE t_item(
+    i_num number(3),
+    i_name varchar2(20),
+    primary key(i_num)
+);
+
+INSERT INTO t_item(i_num,i_name) VALUES(1,'리모콘');
+INSERT INTO t_item(i_num,i_name) VALUES(2,'모니터');
+INSERT INTO t_item(i_num,i_name) VALUES(3,'마우스');
+INSERT INTO t_item(i_num,i_name) VALUES(4,'오디오');
+INSERT INTO t_item(i_num,i_name) VALUES(5,'대박상품');
+
+-- t_item 테이블 생성
+
+------------------------------------------------------------
+
+select 실행했을시 ( 조인 3개 차이점 ) 
+
+LEFT 와 INNER, RIGHT 조인 차이점
+
+- LEFT = LEFT 기준으로 왼쪽 테이블 기준 (왼쪽테이블이 숫자 더많으면 왼쪽테이블에 null뜸)
+
+- RIGHT = RIGHT 기준으로 오른쪽 테이블 기준
+
+- INNER = a테이블에 3까지있고 b테이블에 4까지있으면 최고 3까지만 뜸
+
+
+
+left
+
+SELECT B.i_num,A.i_num FROM t_item A
+LEFT JOIN t_product B
+On B.i_num = A.i_num;
+
+
+right
+
+SELECT B.i_num,A.i_num FROM t_item A
+RIGHT JOIN t_product B
+On B.i_num = A.i_num;
+
+
+INNER
+
+SELECT B.i_num,A.i_num FROM t_item A
+INNER JOIN t_product B
+On B.i_num = A.i_num;
+
+
+
+
